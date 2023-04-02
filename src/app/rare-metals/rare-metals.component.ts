@@ -1,0 +1,97 @@
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { SpotPriceService } from '../services/spot-price.service';
+
+
+@Component({
+  selector: 'app-rare-metals',
+  templateUrl: './rare-metals.component.html',
+  styleUrls: ['./rare-metals.component.scss']
+})
+export class RareMetalsComponent implements OnInit {
+  goldPricePerOunce: number = 0;
+  silverPricePerKilo: number = 0;
+  goldAmountOunces: number = 0;
+  silverAmountKilos: number = 0;
+  totalValue: number = 0;
+  rareMetalsForm: FormGroup;
+
+  ngOnInit() {
+    this.getLatestSpotPrices();
+    this.fetchAmounts();
+  }
+
+  constructor(private spotPriceService: SpotPriceService, private fb: FormBuilder) {
+    this.rareMetalsForm = this.fb.group({
+      goldAmountOunces: [0],
+      silverAmountKilos: [0]
+    });
+
+   }
+
+  onRefreshSpotPrices() {
+    this.spotPriceService.getSpotPrices().subscribe((response: any) => {
+      const goldRate = response.rates.XAU;
+      const silverRate = response.rates.XAG;
+  
+      const goldPricePerOunce = 1 / goldRate; // Calculate the cost of 1 ounce of gold in dollars
+      const silverPricePerKilo = (1 / silverRate) * 35.27396; // Calculate the cost of 1 kg of silver in dollars
+  
+      this.spotPriceService.storeSpotPricesInFirestore(goldPricePerOunce, silverPricePerKilo)
+        .then(() => {
+          this.calculateTotalValue();
+          console.log('Spot prices stored in Firestore');
+        })
+        .catch(error => {
+          console.error('Error storing spot prices in Firestore:', error);
+        });
+    });
+  }
+
+  getLatestSpotPrices() {
+    this.spotPriceService.getLatestSpotPricesFromFirestore().subscribe((prices: any[]) => {
+      if (prices.length > 0) {
+        const latestPrices = prices[0];
+        this.goldPricePerOunce = latestPrices.gold;
+        this.silverPricePerKilo = latestPrices.silver;
+        this.calculateTotalValue();
+      }
+    });
+  }
+
+  fetchAmounts() {
+    this.spotPriceService.getStoredAmounts().subscribe(amounts => {
+      if (amounts) {
+        this.goldAmountOunces = amounts.goldAmount || 0;
+        this.silverAmountKilos = amounts.silverAmount || 0;
+        this.rareMetalsForm.patchValue({
+          goldAmountOunces: this.goldAmountOunces,
+          silverAmountKilos: this.silverAmountKilos
+        });
+        setTimeout(() => {
+          this.calculateTotalValue();
+        }, 0);
+      }
+    });
+  }
+
+  onSubmit() {
+    const goldAmountOunces = this.rareMetalsForm.value.goldAmountOunces;
+    const silverAmountKilos = this.rareMetalsForm.value.silverAmountKilos;
+
+    this.spotPriceService.storeGoldAndSilverAmounts(goldAmountOunces, silverAmountKilos)
+      .then(() => {
+        console.log('Gold and silver amounts stored in Firestore');
+      })
+      .catch(error => {
+        console.error('Error storing gold and silver amounts in Firestore:', error);
+      });
+  }
+
+  calculateTotalValue() {  
+    console.log('hellop');
+    console.log(this.goldAmountOunces, this.goldPricePerOunce)
+    this.totalValue = (this.goldAmountOunces * this.goldPricePerOunce) + (this.silverAmountKilos * this.silverPricePerKilo);
+  }
+
+}
