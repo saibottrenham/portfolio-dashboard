@@ -13,9 +13,9 @@ export class StocksComponent implements OnInit {
   constructor(private firestoreService: FirestoreService) {}
 
   ngOnInit(): void {
-    // this.firestoreService.getData('stocks').subscribe((data) => {
-    //   this.stocks = data;
-    // });
+    this.firestoreService.getData('stocks').subscribe((data) => {
+      this.stocks = data;
+    });
     this.fetchStockData();
   }
 
@@ -28,7 +28,7 @@ export class StocksComponent implements OnInit {
       const stockData = response.data;
 
       // Store the fetched data in Firebase
-      // this.firestoreService.addData('stocks', stockData);
+      this.firestoreService.addData('stocks', stockData);
     } catch (error) {
       console.error('Error fetching stock data:', error);
     }

@@ -11,12 +11,12 @@ import { CurrencyPipe } from '@angular/common';
   providers: [CurrencyPipe]
 })
 export class RareMetalsComponent implements OnInit {
-  goldPricePerOunce: number = 0;
-  silverPricePerKilo: number = 0;
-  goldAmountOunces: number = 0;
-  silverAmountKilos: number = 0;
-  totalValue: number = 0;
-  totalBuyIn: number = 0;
+  goldPricePerOunce = 0;
+  silverPricePerKilo = 0;
+  goldAmountOunces = 0;
+  silverAmountKilos = 0;
+  totalValue = 0;
+  totalBuyIn = 0;
   rareMetalsForm: FormGroup;
   totalBuyInForm: FormGroup;
 
