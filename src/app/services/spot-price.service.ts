@@ -46,4 +46,12 @@ export class SpotPriceService {
         })
       );
   }
+
+  storeTotalBuyIn(totalBuyIn: number): Promise<void> {
+    return this.firestore.collection('rareMetals').doc('totalBuyIn').set({totalBuyIn});
+  }
+
+  getStoredTotalBuyIn() {
+    return this.firestore.collection('rareMetals').doc('totalBuyIn').valueChanges();
+  }
 }

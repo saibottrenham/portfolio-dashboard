@@ -1,0 +1,22 @@
+.dashboard-container {
+    padding: 16px;
+    text-align: center;
+  
+    .dashboard-heading {
+      margin-bottom: 16px;
+    }
+  
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+      gap: 16px;
+      text-align: left;
+  
+      .dashboard-tile {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        align-items: center;
+      }
+    }
+  }

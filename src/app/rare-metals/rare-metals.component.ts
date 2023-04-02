@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { SpotPriceService } from '../services/spot-price.service';
+import { CurrencyPipe } from '@angular/common';
 
 
 @Component({
   selector: 'app-rare-metals',
   templateUrl: './rare-metals.component.html',
-  styleUrls: ['./rare-metals.component.scss']
+  styleUrls: ['./rare-metals.component.scss'],
+  providers: [CurrencyPipe]
 })
 export class RareMetalsComponent implements OnInit {
   goldPricePerOunce: number = 0;
@@ -14,17 +16,26 @@ export class RareMetalsComponent implements OnInit {
   goldAmountOunces: number = 0;
   silverAmountKilos: number = 0;
   totalValue: number = 0;
+  totalBuyIn: number = 0;
   rareMetalsForm: FormGroup;
+  totalBuyInForm: FormGroup;
+
 
   ngOnInit() {
     this.getLatestSpotPrices();
+    this.getLatestBuyIn();
     this.fetchAmounts();
   }
 
-  constructor(private spotPriceService: SpotPriceService, private fb: FormBuilder) {
+  constructor(private spotPriceService: SpotPriceService, private fb: FormBuilder, public currencyPipe: CurrencyPipe) {
     this.rareMetalsForm = this.fb.group({
+      goldPricePerOunce: [0],
+      silverPricePerKilo: [0],
       goldAmountOunces: [0],
       silverAmountKilos: [0]
+    });
+    this.totalBuyInForm = this.fb.group({
+      totalBuyIn: [0]
     });
 
    }
@@ -39,7 +50,7 @@ export class RareMetalsComponent implements OnInit {
   
       this.spotPriceService.storeSpotPricesInFirestore(goldPricePerOunce, silverPricePerKilo)
         .then(() => {
-          this.calculateTotalValue();
+          this.getLatestSpotPrices();
           console.log('Spot prices stored in Firestore');
         })
         .catch(error => {
@@ -54,9 +65,24 @@ export class RareMetalsComponent implements OnInit {
         const latestPrices = prices[0];
         this.goldPricePerOunce = latestPrices.gold;
         this.silverPricePerKilo = latestPrices.silver;
+        this.rareMetalsForm.patchValue({
+          goldPricePerOunce: this.goldPricePerOunce,
+          silverPricePerKilo: this.silverPricePerKilo
+        });
         this.calculateTotalValue();
       }
     });
+  }
+
+  getLatestBuyIn() {
+    this.spotPriceService.getStoredTotalBuyIn().subscribe((buyIn: any) => {
+      if (buyIn) {
+        this.totalBuyIn = buyIn.totalBuyIn;
+        this.totalBuyInForm.patchValue({
+          totalBuyIn: this.totalBuyIn
+        });
+        }
+      });
   }
 
   fetchAmounts() {
@@ -88,9 +114,14 @@ export class RareMetalsComponent implements OnInit {
       });
   }
 
+  onSubmitBuyIn() {
+    this.totalBuyIn = this.totalBuyInForm.value.totalBuyIn;
+    this.spotPriceService.storeTotalBuyIn(this.totalBuyIn).then(() => {
+      console.log('Total buy in stored in Firestore');
+    });
+  }
+
   calculateTotalValue() {  
-    console.log('hellop');
-    console.log(this.goldAmountOunces, this.goldPricePerOunce)
     this.totalValue = (this.goldAmountOunces * this.goldPricePerOunce) + (this.silverAmountKilos * this.silverPricePerKilo);
   }
 

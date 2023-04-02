@@ -1,20 +1,28 @@
 .container {
     display: flex;
     justify-content: space-between;
+    overflow: scroll;
   }
   
   .card-container {
+    h2 {
+      text-align: center;
+    }
     mat-card {
       margin-bottom: 16px;
     }
   }
-  
+
   .form-field {
-    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+    mat-form-field {
+      &:not(:last-child) {
+        margin-right: 16px;
+      }
+    }
   }
   
-  .total-value {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 16px;
-  }
